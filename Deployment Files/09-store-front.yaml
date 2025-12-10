@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-front
+  namespace: bestbuy
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: store-front
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-front
+  namespace: bestbuy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: store-front
+  template:
+    metadata:
+      labels:
+        app: store-front
+    spec:
+      containers:
+      - name: store-front
+        image: nada0038/store-front-bestbuy:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APP_VERSION
+          value: "1.0.0"
+        - name: VUE_APP_PRODUCT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: store-front-config
+              key: VUE_APP_PRODUCT_SERVICE_URL
+        - name: VUE_APP_ORDER_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: store-front-config
+              key: VUE_APP_ORDER_SERVICE_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
