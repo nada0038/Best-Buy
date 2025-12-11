@@ -4,12 +4,28 @@ metadata:
   name: rabbitmq
   namespace: bestbuy
 spec:
+  type: ClusterIP
   ports:
   - port: 5672
     targetPort: 5672
     name: amqp
   - port: 15672
     targetPort: 15672
+    name: management
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-management
+  namespace: bestbuy
+spec:
+  type: NodePort
+  ports:
+  - port: 15672
+    targetPort: 15672
+    nodePort: 31672
     name: management
   selector:
     app: rabbitmq
@@ -52,6 +68,23 @@ spec:
         - name: enabled-plugins
           mountPath: /etc/rabbitmq/enabled_plugins
           subPath: enabled_plugins
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        readinessProbe:
+          tcpSocket:
+            port: 5672
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 5672
+          initialDelaySeconds: 60
+          periodSeconds: 30
       volumes:
       - name: rabbitmq-data
         persistentVolumeClaim:
