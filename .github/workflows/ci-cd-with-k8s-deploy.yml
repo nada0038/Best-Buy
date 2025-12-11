@@ -19,18 +19,23 @@ jobs:
       matrix:
         service:
           - name: product-service
+            context: ./product-service-bestbuy
             dockerfile: product-service-bestbuy/Dockerfile
             image: nada0038/product-service-bestbuy
           - name: order-service
+            context: ./order-service-bestbuy
             dockerfile: order-service-bestbuy/Dockerfile
             image: nada0038/order-service-bestbuy
           - name: makeline-service
+            context: ./makeline-service-bestbuy
             dockerfile: makeline-service-bestbuy/Dockerfile
             image: nada0038/makeline-service-bestbuy
           - name: store-front
+            context: ./store-front-bestbuy
             dockerfile: store-front-bestbuy/Dockerfile
             image: nada0038/store-front-bestbuy
           - name: store-admin
+            context: ./store-admin-bestbuy
             dockerfile: store-admin-bestbuy/Dockerfile
             image: nada0038/store-admin-bestbuy
     
@@ -50,7 +55,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.service.name }}
+          context: ${{ matrix.service.context }}
           file: ./${{ matrix.service.dockerfile }}
           push: ${{ github.event_name == 'push' }}
           tags: |
