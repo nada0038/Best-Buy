@@ -28,56 +28,54 @@ spec:
       containers:
       - name: makeline-service
         image: nada0038/makeline-service-bestbuy:latest
+
         ports:
         - containerPort: 3001
+
         env:
-        - name: APP_VERSION
-          value: "1.0.0"
-        - name: ORDER_QUEUE_URI
+        # ✅ Pull Mongo username from secret
+        - name: MONGO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: username
+
+        # ✅ Pull Mongo password from secret
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: password
+
+        # ✅ Build full authenticated Mongo connection string
+        - name: MONGO_URL
+          value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb:27017/bestbuy?authSource=admin"
+
+        # ✅ RabbitMQ (already confirmed working)
+        - name: RABBITMQ_HOST
           valueFrom:
             configMapKeyRef:
-              name: makeline-service-config
-              key: ORDER_QUEUE_URI
-        - name: ORDER_QUEUE_USERNAME
+              name: rabbitmq-config
+              key: host
+
+        - name: RABBITMQ_USERNAME
           valueFrom:
             configMapKeyRef:
               name: rabbitmq-config
               key: username
-        - name: ORDER_QUEUE_PASSWORD
+
+        - name: RABBITMQ_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rabbitmq-secret
               key: password
-        - name: ORDER_QUEUE_NAME
+
+        - name: RABBITMQ_QUEUE
           valueFrom:
             configMapKeyRef:
-              name: makeline-service-config
-              key: ORDER_QUEUE_NAME
-        - name: ORDER_DB_URI
-          valueFrom:
-            configMapKeyRef:
-              name: makeline-service-config
-              key: ORDER_DB_URI
-        - name: ORDER_DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: makeline-service-config
-              key: ORDER_DB_NAME
-        - name: ORDER_DB_COLLECTION_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: makeline-service-config
-              key: ORDER_DB_COLLECTION_NAME
-        - name: ORDER_DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: mongodb-secret
-              key: username
-        - name: ORDER_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mongodb-secret
-              key: password
+              name: makeline-config
+              key: queue_name
+
         resources:
           requests:
             memory: "256Mi"
@@ -85,16 +83,17 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+
         livenessProbe:
           httpGet:
             path: /health
             port: 3001
           initialDelaySeconds: 30
           periodSeconds: 10
+
         readinessProbe:
           httpGet:
             path: /health
             port: 3001
           initialDelaySeconds: 10
           periodSeconds: 5
-

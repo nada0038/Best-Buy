@@ -28,12 +28,9 @@ spec:
       containers:
       - name: makeline-service
         image: nada0038/makeline-service-bestbuy:latest
-
         ports:
         - containerPort: 3001
-
         env:
-        # ✅ Inject Mongo credentials from the SAME secret your MongoDB uses
         - name: MONGO_USERNAME
           valueFrom:
             secretKeyRef:
@@ -46,11 +43,9 @@ spec:
               name: mongodb-secret
               key: password
 
-        # ✅ Build authenticated MongoDB connection string
         - name: MONGO_URL
           value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb:27017/bestbuy?authSource=admin"
 
-        # ✅ RabbitMQ (already working)
         - name: RABBITMQ_HOST
           valueFrom:
             configMapKeyRef:

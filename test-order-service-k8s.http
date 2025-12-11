@@ -1,0 +1,68 @@
+####################################
+### ORDER SERVICE - Kubernetes Testing
+####################################
+# 
+# Option 1: Use port-forward to access the service locally
+# Run this command first: kubectl port-forward -n bestbuy service/order-service 3000:3000
+# Then use these requests:
+
+### Get order service health (via port-forward)
+GET http://localhost:3000/health
+
+### Send order to order service (via port-forward)
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+    "customerId": "1234567890",
+    "items": [
+        {
+            "productId": 1,
+            "quantity": 1,
+            "price": 10
+        },
+        {
+            "productId": 2,
+            "quantity": 2,
+            "price": 20
+        }
+    ]
+}
+
+####################################
+### Option 2: Test through Store Front Service
+####################################
+# The store-front service proxies /order requests to order-service
+# Access via: http://52.240.209.87/order
+
+### Send order through store-front (external IP)
+POST http://52.240.209.87/order
+Content-Type: application/json
+
+{
+    "customerId": "1234567890",
+    "items": [
+        {
+            "productId": 1,
+            "quantity": 1,
+            "price": 10
+        },
+        {
+            "productId": 2,
+            "quantity": 2,
+            "price": 20
+        }
+    ]
+}
+
+####################################
+### Option 3: Test from inside Kubernetes cluster
+####################################
+# Run this from a pod inside the cluster or use kubectl exec
+
+### Get order service health (from inside cluster)
+# kubectl exec -n bestbuy deployment/store-front -- wget -qO- http://order-service:3000/health
+
+### Send order (from inside cluster)
+# kubectl exec -n bestbuy deployment/store-front -- wget --post-data='{"customerId":"123","items":[{"productId":1,"quantity":1,"price":10}]}' --header='Content-Type: application/json' -qO- http://order-service:3000/
+
