@@ -6,7 +6,6 @@ metadata:
 data:
   username: "username"
   hostname: "rabbitmq"
-  host: "rabbitmq"
   port: "5672"
   queue-name: "orders"
 ---
@@ -38,7 +37,7 @@ metadata:
   name: makeline-service-config
   namespace: bestbuy
 data:
-  ORDER_QUEUE_URI: "amqp://username:password@rabbitmq:5672"
+  ORDER_QUEUE_URI: "amqp://rabbitmq:5672"
   ORDER_QUEUE_NAME: "orders"
   ORDER_DB_URI: "mongodb://mongodb:27017"
   ORDER_DB_NAME: "orderdb"
@@ -77,4 +76,5 @@ metadata:
   namespace: bestbuy
 data:
   enabled_plugins: |
-    [rabbitmq_management,rabbitmq_amqp1_0].
+    [rabbitmq_management, rabbitmq_amqp1_0].
+
