@@ -1,55 +1,186 @@
-# Best Buy - Cloud-Native Microservices Application
+# Lab Project: Cloud-Native App for Best Buy
+
+## Demo Video
+
+**[YouTube]()**
+
+
+
+---
 
 ## Overview
 
-This is a cloud-native microservices application built for Best Buy, demonstrating modern DevOps practices and Kubernetes deployment. The application consists of 5 microservices that work together to provide a complete e-commerce solution.
+This is a cloud-native microservices application built for Best Buy, demonstrating modern DevOps practices and Kubernetes deployment. The application consists of 5 microservices that work together to provide a complete e-commerce solution, based on the Algonquin Pet Store (On Steroids) architecture.
 
-## Architecture
+### Brief Application Explanation
 
-### Architecture Diagram
+The Best Buy cloud-native application is a microservices-based e-commerce platform that allows customers to browse products, place orders, and enables employees to manage inventory and process orders. The application follows cloud-native principles with:
 
-![Architecture Diagram](architecture-diagram.png)
+- **Microservices Architecture**: Each service is independently deployable and scalable
+- **Containerization**: All services are containerized using Docker
+- **Orchestration**: Deployed on Azure Kubernetes Service (AKS)
+- **Message Queue**: Asynchronous order processing using RabbitMQ
+- **Persistent Storage**: MongoDB StatefulSet for order data
+- **CI/CD**: Automated build and deployment pipelines using GitHub Actions
 
-*Note: Please add your Draw.io architecture diagram here. The diagram should show:*
+The application flow:
+1. Customers browse products and place orders through the **Store-Front** web app
+2. Orders are sent to **Order-Service** which queues them in RabbitMQ
+3. **Makeline-Service** processes orders from the queue and stores them in MongoDB
+4. Employees use **Store-Admin** to view and process orders
+5. **Product-Service** manages the product catalog
+
+---
+
+## Website Link
+Store front (http://52.240.209.87/)
+Store Admin (http://130.131.29.143/)
+RabbitMQ (http://localhost:15672/)
+
+## Architecture Diagram
+
+### Interactive Diagram (Mermaid - Renders on GitHub)
+
+```mermaid
+graph TB
+    subgraph "External Users"
+        Customer[👤 Customer]
+        Employee[👨‍💼 Employee]
+    end
+
+    subgraph "Azure Kubernetes Service (AKS)"
+        subgraph "LoadBalancer Services"
+            LB_Front[LoadBalancer<br/>Store-Front<br/>Port: 80]
+            LB_Admin[LoadBalancer<br/>Store-Admin<br/>Port: 80]
+        end
+
+        subgraph "Frontend Services"
+            StoreFront[Store-Front<br/>Vue.js + Nginx<br/>Port: 8080]
+            StoreAdmin[Store-Admin<br/>Vue.js + Nginx<br/>Port: 8081]
+        end
+
+        subgraph "Backend Services"
+            OrderService[Order-Service<br/>Node.js + Fastify<br/>Port: 3000]
+            ProductService[Product-Service<br/>Rust + Actix<br/>Port: 3002]
+            MakelineService[Makeline-Service<br/>Go + Gin<br/>Port: 3001]
+        end
+
+        subgraph "Infrastructure"
+            RabbitMQ[RabbitMQ<br/>Message Queue<br/>Port: 5672<br/>AMQP 1.0]
+            MongoDB[(MongoDB<br/>StatefulSet<br/>Port: 27017)]
+        end
+
+        subgraph "Kubernetes Resources"
+            ConfigMaps[ConfigMaps<br/>Service Configurations]
+            Secrets[Secrets<br/>Credentials]
+        end
+    end
+
+    subgraph "CI/CD Pipeline"
+        GitHub[GitHub<br/>Repositories]
+        GitHubActions[GitHub Actions<br/>CI/CD Workflows]
+        DockerHub[Docker Hub<br/>Container Registry]
+    end
+
+    Customer -->|HTTP| LB_Front
+    Employee -->|HTTP| LB_Admin
+    LB_Front --> StoreFront
+    LB_Admin --> StoreAdmin
+
+    StoreFront -->|/products| ProductService
+    StoreFront -->|/order| OrderService
+    StoreAdmin -->|/products| ProductService
+    StoreAdmin -->|/makeline/order| MakelineService
+
+    OrderService -->|Publish Orders| RabbitMQ
+    RabbitMQ -->|Consume Orders| MakelineService
+    MakelineService -->|Store Orders| MongoDB
+    MakelineService -->|Read Orders| MongoDB
+
+    ConfigMaps -.->|Configuration| OrderService
+    ConfigMaps -.->|Configuration| ProductService
+    ConfigMaps -.->|Configuration| MakelineService
+    Secrets -.->|Credentials| MongoDB
+    Secrets -.->|Credentials| RabbitMQ
+    Secrets -.->|Credentials| OrderService
+    Secrets -.->|Credentials| MakelineService
+
+    GitHub -->|Push Code| GitHubActions
+    GitHubActions -->|Build & Push| DockerHub
+    DockerHub -->|Pull Images| OrderService
+    DockerHub -->|Pull Images| ProductService
+    DockerHub -->|Pull Images| MakelineService
+    DockerHub -->|Pull Images| StoreFront
+    DockerHub -->|Pull Images| StoreAdmin
+
+    style StoreFront fill:#42b883
+    style StoreAdmin fill:#42b883
+    style OrderService fill:#339933
+    style ProductService fill:#ce412b
+    style MakelineService fill:#00add8
+    style RabbitMQ fill:#ff6600
+    style MongoDB fill:#47a248
+    style GitHubActions fill:#2088ff
+    style DockerHub fill:#0db7ed
+```
+
+### Static Diagram (Draw.io)
+
+
+[architecture-diagram.md](architecture-diagram.md).*
+
 - All 5 microservices and their interactions
 - MongoDB StatefulSet
 - RabbitMQ message queue
-- Kubernetes cluster components
-- CI/CD pipeline flow
-- External access points (LoadBalancers)
+- Kubernetes cluster components (Services, Deployments, ConfigMaps, Secrets)
+- CI/CD pipeline flow (GitHub Actions → Docker Hub → Kubernetes)
+- External access points (LoadBalancers for Store-Front and Store-Admin)
+- Network flow and data flow between services
 
-### Application Components
+---
 
-The application consists of the following microservices:
+## Application Components
 
-1. **Store-Front** - Customer-facing web application built with Vue.js
-   - Allows customers to browse products and place orders
+### Microservices
+
+1. **Store-Front** - Customer-facing web application
+   - Technology: Vue.js 3, Nginx
    - Port: 8080
+   - Purpose: Allows customers to browse products and place orders
+   - Repository: [store-front-bestbuy](https://github.com/nada0038/store-front-bestbuy)
 
-2. **Store-Admin** - Employee web application built with Vue.js
-   - Allows employees to manage products and process orders
+2. **Store-Admin** - Employee web application
+   - Technology: Vue.js 3, Nginx
    - Port: 8081
+   - Purpose: Allows employees to manage products and process orders
+   - Repository: [store-admin-bestbuy](https://github.com/nada0038/store-admin-bestbuy)
 
-3. **Order-Service** - Order processing API built with Node.js/Fastify
-   - Handles order creation and management
+3. **Order-Service** - Order processing API
+   - Technology: Node.js, Fastify
    - Port: 3000
-   - Communicates with RabbitMQ for order queuing
+   - Purpose: Handles order creation and queues orders to RabbitMQ
+   - Repository: [order-service-bestbuy](https://github.com/nada0038/order-service-bestbuy)
 
-4. **Product-Service** - Product management API built with Rust/Actix
-   - Manages product catalog and inventory
+4. **Product-Service** - Product management API
+   - Technology: Rust, Actix Web
    - Port: 3002
+   - Purpose: Manages product catalog and inventory
+   - Repository: [product-service-bestbuy](https://github.com/nada0038/product-service-bestbuy)
 
-5. **Makeline-Service** - Background worker service built with Go/Gin
-   - Processes orders from the queue and updates order status
+5. **Makeline-Service** - Background worker service
+   - Technology: Go, Gin
    - Port: 3001
-   - Consumes messages from RabbitMQ and stores data in MongoDB
+   - Purpose: Processes orders from RabbitMQ queue and stores them in MongoDB
+   - Repository: [makeline-service-bestbuy](https://github.com/nada0038/makeline-service-bestbuy)
 
 ### Infrastructure Components
 
 - **MongoDB** - StatefulSet for persistent order storage
-- **RabbitMQ** - Message queue for asynchronous order processing
+- **RabbitMQ** - Message queue for asynchronous order processing (AMQP 1.0)
 
-## Repository Links
+---
+
+## Repository Links and Docker Hub Images
 
 | Service | GitHub Repository | Docker Hub Image |
 |---------|------------------|------------------|
@@ -59,48 +190,65 @@ The application consists of the following microservices:
 | Product-Service | [product-service-bestbuy](https://github.com/nada0038/product-service-bestbuy) | [nada0038/product-service-bestbuy](https://hub.docker.com/r/nada0038/product-service-bestbuy) |
 | Makeline-Service | [makeline-service-bestbuy](https://github.com/nada0038/makeline-service-bestbuy) | [nada0038/makeline-service-bestbuy](https://hub.docker.com/r/nada0038/makeline-service-bestbuy) |
 
-## Prerequisites
+---
 
-- Azure subscription (Student subscription works)
-- Azure CLI installed and configured
-- kubectl installed
-- Docker installed (for local development)
-- Access to Docker Hub (for pushing images)
-
-## Deployment Instructions
-
-### 1. Create Azure Kubernetes Service (AKS) Cluster
-
-Follow the instructions in [AKS-SETUP.md](AKS-SETUP.md) to create your AKS cluster.
-
-### 2. Configure kubectl
-
-After creating the AKS cluster, configure kubectl to connect to your cluster:
+### Step 1: Create Azure Kubernetes Service (AKS) Cluster
 
 ```bash
-az aks get-credentials --resource-group <resource-group-name> --name <aks-cluster-name>
+# Login to Azure
+az login
+
+# Create resource group
+az group create --name bestbuy-rg --location eastus
+
+# Create AKS cluster
+az aks create \
+  --resource-group bestbuy-rg \
+  --name bestbuy-aks \
+  --node-count 2 \
+  --node-vm-size Standard_B2s \
+  --enable-managed-identity \
+  --generate-ssh-keys
 ```
 
-### 3. Deploy Application
+### Step 2: Configure kubectl
 
-Deploy all components in order:
+```bash
+# Get credentials for your AKS cluster
+az aks get-credentials --resource-group bestbuy-rg --name bestbuy-aks
+
+# Verify connection
+kubectl get nodes
+```
+
+### Step 3: Deploy Application
+
+All Kubernetes manifests are located in the `Deployment Files/` directory. Deploy in the following order:
 
 ```bash
 # Navigate to Deployment Files directory
 cd "Deployment Files"
 
-# Apply all manifests in order
+# 1. Create namespace
 kubectl apply -f 01-namespace.yaml
+
+# 2. Create secrets (MongoDB and RabbitMQ credentials)
 kubectl apply -f 05-secrets.yaml
+
+# 3. Create ConfigMaps (service configurations)
 kubectl apply -f 04-configmaps.yaml
+
+# 4. Deploy MongoDB StatefulSet
 kubectl apply -f 02-mongodb-statefulset.yaml
+
+# 5. Deploy RabbitMQ
 kubectl apply -f 03-rabbitmq-deployment.yaml
 
-# Wait for MongoDB and RabbitMQ to be ready
+# Wait for infrastructure to be ready
 kubectl wait --for=condition=ready pod -l app=mongodb -n bestbuy --timeout=300s
 kubectl wait --for=condition=ready pod -l app=rabbitmq -n bestbuy --timeout=300s
 
-# Deploy microservices
+# 6. Deploy microservices
 kubectl apply -f 06-product-service.yaml
 kubectl apply -f 07-order-service.yaml
 kubectl apply -f 08-makeline-service.yaml
@@ -108,160 +256,133 @@ kubectl apply -f 09-store-front.yaml
 kubectl apply -f 10-store-admin.yaml
 ```
 
-### 4. Verify Deployment
-
-Check the status of all pods:
+### Step 4: Verify Deployment
 
 ```bash
+# Check all pods are running
 kubectl get pods -n bestbuy
-```
 
-Check services:
-
-```bash
+# Check services
 kubectl get services -n bestbuy
+
+# Check deployments
+kubectl get deployments -n bestbuy
 ```
 
-### 5. Access the Application
+### Step 5: Access the Application
 
 Get the external IP addresses for the frontend services:
 
 ```bash
-# Get Store-Front URL
+# Get Store-Front external IP
 kubectl get service store-front -n bestbuy
 
-# Get Store-Admin URL
+# Get Store-Admin external IP
 kubectl get service store-admin -n bestbuy
 ```
 
-The LoadBalancer services will be assigned external IPs. Access:
+Access the applications:
 - **Store-Front**: `http://<store-front-external-ip>`
 - **Store-Admin**: `http://<store-admin-external-ip>`
 
+---
+
 ## CI/CD Pipeline
 
-Each microservice has a GitHub Actions workflow that:
-1. Builds the Docker image on push to `main` branch
-2. Pushes the image to Docker Hub with tags: `latest` and commit SHA
-3. Can be extended to deploy to AKS automatically
+Each microservice has a GitHub Actions workflow (`.github/workflows/ci_cd.yaml`) that automatically:
+
+1. **Builds** the Docker image when code is pushed to the `main` branch
+2. **Pushes** the image to Docker Hub with tags:
+   - `latest` - Always points to the most recent build
+   - `${{ github.sha }}` - Tagged with the commit SHA for versioning
 
 ### Setting up CI/CD Secrets
 
-In each GitHub repository, add the following secrets:
-- `DOCKERHUB_USERNAME`: Your Docker Hub username (nada0038)
-- `DOCKERHUB_TOKEN`: Your Docker Hub access token
+In each GitHub repository, add the following secrets under **Settings → Secrets and variables → Actions**:
 
-### Building and Pushing Docker Images
+- `DOCKER_USERNAME`: Your Docker Hub username (e.g., `nada0038`)
+- `DOCKER_PASSWORD`: Your Docker Hub access token
 
-**Important**: The Docker images must be built and pushed to Docker Hub before deploying to Kubernetes. 
+To create a Docker Hub access token:
+1. Go to [Docker Hub](https://hub.docker.com/)
+2. Sign in → Account Settings → Security
+3. Create New Access Token with **Read & Write** permissions
 
-See [BUILD-AND-PUSH-IMAGES.md](BUILD-AND-PUSH-IMAGES.md) for detailed instructions on:
-- Building images manually
-- Setting up CI/CD to build automatically
-- Troubleshooting 404 errors
+### CI/CD Workflow Demonstration
 
-**Quick Start**: Use the provided PowerShell script:
-```powershell
-# Make sure you're logged into Docker Hub first
-docker login
+To demonstrate the CI/CD pipeline:
 
-# Run the build script
-.\build-all-images.ps1
-```
-
-## Local Development
-
-### Running with Docker Compose
-
-Each service includes a `docker-compose.yml` file for local development:
-
-```bash
-cd store-front-bestbuy
-docker-compose up
-```
-
-## Monitoring and Troubleshooting
-
-### View Logs
-
-```bash
-# View logs for a specific service
-kubectl logs -f deployment/product-service -n bestbuy
-
-# View logs for all pods in namespace
-kubectl logs -f -l app=product-service -n bestbuy
-```
-
-### Check Service Health
-
-```bash
-# Port forward to test services locally
-kubectl port-forward service/product-service 3002:3002 -n bestbuy
-
-# Test health endpoint
-curl http://localhost:3002/health
-```
-
-### Common Issues
-
-1. **Pods not starting**: Check pod logs and describe the pod for events
+1. Make a change to any service code
+2. Commit and push to the `main` branch:
    ```bash
-   kubectl describe pod <pod-name> -n bestbuy
+   git add .
+   git commit -m "Update service"
+   git push origin main
    ```
+3. Go to the repository's **Actions** tab on GitHub
+4. Watch the workflow build and push the Docker image
+5. Verify the new image on Docker Hub
 
-2. **Services not accessible**: Verify service endpoints
-   ```bash
-   kubectl get endpoints -n bestbuy
-   ```
-
-3. **MongoDB connection issues**: Ensure MongoDB StatefulSet is ready
-   ```bash
-   kubectl get statefulset mongodb -n bestbuy
-   ```
-
-## Demo Video
-
-[Link to YouTube Demo Video](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
-
-*Please add your demo video link here after uploading to YouTube.*
+---
 
 ## Project Structure
 
 ```
 Best-Buy/
-├── Deployment Files/          # Kubernetes manifests
-│   ├── 01-namespace.yaml
-│   ├── 02-mongodb-statefulset.yaml
-│   ├── 03-rabbitmq-deployment.yaml
-│   ├── 04-configmaps.yaml
-│   ├── 05-secrets.yaml
-│   ├── 06-product-service.yaml
-│   ├── 07-order-service.yaml
-│   ├── 08-makeline-service.yaml
-│   ├── 09-store-front.yaml
-│   └── 10-store-admin.yaml
-├── store-front-bestbuy/       # Customer web app
-├── store-admin-bestbuy/       # Employee web app
-├── order-service-bestbuy/     # Order API
-├── product-service-bestbuy/   # Product API
-├── makeline-service-bestbuy/  # Background worker
-└── README.md                  # This file
+├── Deployment Files/              # Kubernetes manifests
+│   ├── 01-namespace.yaml         # Namespace definition
+│   ├── 02-mongodb-statefulset.yaml  # MongoDB StatefulSet
+│   ├── 03-rabbitmq-deployment.yaml  # RabbitMQ deployment
+│   ├── 04-configmaps.yaml        # Configuration maps
+│   ├── 05-secrets.yaml           # Secrets (credentials)
+│   ├── 06-product-service.yaml   # Product service deployment
+│   ├── 07-order-service.yaml     # Order service deployment
+│   ├── 08-makeline-service.yaml  # Makeline service deployment
+│   ├── 09-store-front.yaml       # Store-Front deployment
+│   └── 10-store-admin.yaml       # Store-Admin deployment
+├── store-front-bestbuy/          # Customer web app
+│   ├── .github/workflows/        # CI/CD pipeline
+│   ├── src/                      # Vue.js source code
+│   ├── Dockerfile                # Container image definition
+│   └── README.md                 # Service documentation
+├── store-admin-bestbuy/          # Employee web app
+│   ├── .github/workflows/        # CI/CD pipeline
+│   ├── src/                      # Vue.js source code
+│   ├── Dockerfile                # Container image definition
+│   └── README.md                 # Service documentation
+├── order-service-bestbuy/        # Order API
+│   ├── .github/workflows/        # CI/CD pipeline
+│   ├── routes/                   # API routes
+│   ├── plugins/                  # Fastify plugins
+│   ├── Dockerfile                # Container image definition
+│   └── README.md                 # Service documentation
+├── product-service-bestbuy/      # Product API
+│   ├── .github/workflows/        # CI/CD pipeline
+│   ├── src/                      # Rust source code
+│   ├── Dockerfile                # Container image definition
+│   └── README.md                 # Service documentation
+├── makeline-service-bestbuy/     # Background worker
+│   ├── .github/workflows/        # CI/CD pipeline
+│   ├── *.go                      # Go source files
+│   ├── Dockerfile                # Container image definition
+│   └── README.md                 # Service documentation
+└── README.md                     # This file
 ```
+
+---
 
 ## Technologies Used
 
 - **Frontend**: Vue.js 3, Nginx
-- **Backend**: Node.js (Fastify), Go (Gin), Rust (Actix)
-- **Database**: MongoDB
+- **Backend**: 
+  - Node.js (Fastify) - Order Service
+  - Go (Gin) - Makeline Service
+  - Rust (Actix Web) - Product Service
+- **Database**: MongoDB (StatefulSet)
 - **Message Queue**: RabbitMQ
-- **Container Orchestration**: Kubernetes (AKS)
+- **Container Orchestration**: Kubernetes (Azure Kubernetes Service - AKS)
 - **CI/CD**: GitHub Actions
 - **Container Registry**: Docker Hub
+- **Infrastructure**: Microsoft Azure
 
-## Contributors
-
-- nada0038
-
-## License
-
-This project is for educational purposes.
+---
