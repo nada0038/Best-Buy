@@ -108,7 +108,7 @@ All Kubernetes deployment manifests are located in the [Deployment Files/](Deplo
 
 1. Get your AKS credentials:
    ```bash
-   az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster-name>
+   az aks get-credentials --resource-group bestbuy-rg --name bestbuy-aks --overwrite-existing
    ```
 
 2. Verify cluster access:
@@ -120,8 +120,8 @@ All Kubernetes deployment manifests are located in the [Deployment Files/](Deplo
 
 For each microservice repository, add the following secrets under **Settings → Secrets and variables → Actions**:
 
-- `DOCKER_USERNAME`: Your Docker Hub username
-- `DOCKER_PASSWORD`: Your Docker Hub access token
+- `DOCKER_USERNAME`: nada0038
+- `DOCKER_PASSWORD`: Docker Hub access token
 - `KUBE_CONFIG`: Base64-encoded Kubernetes configuration file
 
 For detailed instructions on setting up `KUBE_CONFIG`, see [`.github/KUBE_CONFIG_SETUP.md`](.github/KUBE_CONFIG_SETUP.md)
@@ -188,6 +188,7 @@ kubectl get svc -n bestbuy
 Access the applications:
 - **Store-Front**: `http://52.240.209.87/`
 - **Store-Admin**: `http://130.131.29.143/`
+- **RabbitMQ**: `http://localhost:15672/`
 
 ---
 
