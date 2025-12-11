@@ -43,43 +43,43 @@ RabbitMQ (http://localhost:15672/)
 
 ```mermaid
 graph TB
-    subgraph "External Users"
-        Customer[👤 Customer]
-        Employee[👨‍💼 Employee]
+    subgraph External["External Users"]
+        Customer[Customer]
+        Employee[Employee]
     end
 
-    subgraph "Azure Kubernetes Service (AKS)"
-        subgraph "LoadBalancer Services"
-            LB_Front[LoadBalancer<br/>Store-Front<br/>Port: 80]
-            LB_Admin[LoadBalancer<br/>Store-Admin<br/>Port: 80]
+    subgraph AKS["Azure Kubernetes Service (AKS)"]
+        subgraph LB["LoadBalancer Services"]
+            LB_Front["LoadBalancer<br/>Store-Front<br/>Port: 80"]
+            LB_Admin["LoadBalancer<br/>Store-Admin<br/>Port: 80"]
         end
 
-        subgraph "Frontend Services"
-            StoreFront[Store-Front<br/>Vue.js + Nginx<br/>Port: 8080]
-            StoreAdmin[Store-Admin<br/>Vue.js + Nginx<br/>Port: 8081]
+        subgraph Frontend["Frontend Services"]
+            StoreFront["Store-Front<br/>Vue.js + Nginx<br/>Port: 8080"]
+            StoreAdmin["Store-Admin<br/>Vue.js + Nginx<br/>Port: 8081"]
         end
 
-        subgraph "Backend Services"
-            OrderService[Order-Service<br/>Node.js + Fastify<br/>Port: 3000]
-            ProductService[Product-Service<br/>Rust + Actix<br/>Port: 3002]
-            MakelineService[Makeline-Service<br/>Go + Gin<br/>Port: 3001]
+        subgraph Backend["Backend Services"]
+            OrderService["Order-Service<br/>Node.js + Fastify<br/>Port: 3000"]
+            ProductService["Product-Service<br/>Rust + Actix<br/>Port: 3002"]
+            MakelineService["Makeline-Service<br/>Go + Gin<br/>Port: 3001"]
         end
 
-        subgraph "Infrastructure"
-            RabbitMQ[RabbitMQ<br/>Message Queue<br/>Port: 5672<br/>AMQP 1.0]
-            MongoDB[(MongoDB<br/>StatefulSet<br/>Port: 27017)]
+        subgraph Infra["Infrastructure"]
+            RabbitMQ["RabbitMQ<br/>Message Queue<br/>Port: 5672<br/>AMQP 1.0"]
+            MongoDB[("MongoDB<br/>StatefulSet<br/>Port: 27017")]
         end
 
-        subgraph "Kubernetes Resources"
-            ConfigMaps[ConfigMaps<br/>Service Configurations]
-            Secrets[Secrets<br/>Credentials]
+        subgraph K8s["Kubernetes Resources"]
+            ConfigMaps["ConfigMaps<br/>Service Configurations"]
+            Secrets["Secrets<br/>Credentials"]
         end
     end
 
-    subgraph "CI/CD Pipeline"
-        GitHub[GitHub<br/>Repositories]
-        GitHubActions[GitHub Actions<br/>CI/CD Workflows]
-        DockerHub[Docker Hub<br/>Container Registry]
+    subgraph CICD["CI/CD Pipeline"]
+        GitHub["GitHub<br/>Repositories"]
+        GitHubActions["GitHub Actions<br/>CI/CD Workflows"]
+        DockerHub["Docker Hub<br/>Container Registry"]
     end
 
     Customer -->|HTTP| LB_Front
