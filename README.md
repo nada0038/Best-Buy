@@ -263,3 +263,6 @@ Best-Buy/
   
 ### Tools Used
 Draw.io (for diagram)
+
+### AI usage
+Chatgpt used to make md files from normal text.
