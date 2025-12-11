@@ -260,3 +260,4 @@ Best-Buy/
 - MongoDB uses StatefulSet for persistent storage
 - CI/CD pipelines are implemented for each microservice
 - The application follows cloud-native best practices
+  
