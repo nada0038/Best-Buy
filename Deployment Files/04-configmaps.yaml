@@ -68,4 +68,13 @@ metadata:
 data:
   VUE_APP_PRODUCT_SERVICE_URL: "http://product-service:3002/"
   VUE_APP_MAKELINE_SERVICE_URL: "http://makeline-service:3001/"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-enabled-plugins
+  namespace: bestbuy
+data:
+  enabled_plugins: |
+    [rabbitmq_management, rabbitmq_amqp1_0].
 

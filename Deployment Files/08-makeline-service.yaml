@@ -33,48 +33,59 @@ spec:
         - containerPort: 3001
 
         env:
-        # ✅ Pull Mongo username from secret
-        - name: MONGO_USERNAME
+        # MongoDB Configuration (makeline service expects these names)
+        - name: ORDER_DB_URI
+          value: "mongodb://mongodb:27017"
+        
+        - name: ORDER_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: makeline-service-config
+              key: ORDER_DB_NAME
+
+        - name: ORDER_DB_COLLECTION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: makeline-service-config
+              key: ORDER_DB_COLLECTION_NAME
+
+        # MongoDB Username and Password (for authentication)
+        - name: ORDER_DB_USERNAME
           valueFrom:
             secretKeyRef:
               name: mongodb-secret
               key: username
 
-        # ✅ Pull Mongo password from secret
-        - name: MONGO_PASSWORD
+        - name: ORDER_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mongodb-secret
               key: password
 
-        # ✅ Build full authenticated Mongo connection string
-        - name: MONGO_URL
-          value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb:27017/bestbuy?authSource=admin"
-
-        # ✅ RabbitMQ (already confirmed working)
-        - name: RABBITMQ_HOST
+        # RabbitMQ Configuration (makeline service expects these names)
+        - name: ORDER_QUEUE_URI
           valueFrom:
             configMapKeyRef:
-              name: rabbitmq-config
-              key: host
+              name: makeline-service-config
+              key: ORDER_QUEUE_URI
 
-        - name: RABBITMQ_USERNAME
+        - name: ORDER_QUEUE_USERNAME
           valueFrom:
             configMapKeyRef:
               name: rabbitmq-config
               key: username
 
-        - name: RABBITMQ_PASSWORD
+        - name: ORDER_QUEUE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rabbitmq-secret
               key: password
 
-        - name: RABBITMQ_QUEUE
+        - name: ORDER_QUEUE_NAME
           valueFrom:
             configMapKeyRef:
-              name: makeline-config
-              key: queue_name
+              name: makeline-service-config
+              key: ORDER_QUEUE_NAME
 
         resources:
           requests:

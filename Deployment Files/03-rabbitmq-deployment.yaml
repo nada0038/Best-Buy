@@ -49,10 +49,16 @@ spec:
         volumeMounts:
         - name: rabbitmq-data
           mountPath: /var/lib/rabbitmq
+        - name: enabled-plugins
+          mountPath: /etc/rabbitmq/enabled_plugins
+          subPath: enabled_plugins
       volumes:
       - name: rabbitmq-data
         persistentVolumeClaim:
           claimName: rabbitmq-pvc
+      - name: enabled-plugins
+        configMap:
+          name: rabbitmq-enabled-plugins
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
